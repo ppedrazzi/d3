@@ -7,6 +7,10 @@ if Meteor.isClient
         Meteor.call("buildChartData")
         console.log "Client is alive."
 
+    Template.barChart.events
+        'click #addItem': ->
+            Meteor.call("addNewDocument")
+
     cursor = chartData.find()
     cursor.observeChanges
         added: (id, fields) ->
@@ -21,6 +25,8 @@ if Meteor.isClient
                 .append('rect')
                 .on("mouseover", (d) ->
                     console.log "id", id, "value:", d.value)
+                .on("click", (d) ->
+                    chartData.remove({_id: id}) )
 
             bars.attr
                 x: (d, i) ->
@@ -34,6 +40,9 @@ if Meteor.isClient
 
             bars.style
                 fill: '#1FB6ED'
+
+        changed: (id, fields) ->
+            console.log "CHANGED:", id, fields.value
 
         removed: (id) ->
             console.log "REMOVED", id
@@ -53,6 +62,9 @@ if Meteor.isServer
     Meteor.methods
         clearChartData: () ->
             chartData.remove({})
+        addNewDocument: () ->
+            chartData.insert
+                value: Random.fraction() * 100
 
         buildChartData: () ->
             chartData.insert
