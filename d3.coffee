@@ -15,44 +15,38 @@ if Meteor.isClient
             Meteor.call("changeDocument")
 
     cursor = chartData.find()
-    cursor.observeChanges
-        added: (id, fields) ->
-            console.log "ADDED:", id, fields.value
-            item = chartData.findOne({_id: id})
-            data = []
-            data.push(item)
-            console.log "new Data:", data
+    cursor.observe
+        added: (document) ->
+            console.log "ADDED:", document
+            data = [document]
             bar = d3.select('#barChart')
                 .selectAll('rect')
-                .select('#id-' + id)
+                .select('#id-' + document._id)
                 .data(data)
 
             bar.enter()
             #enter creates/appends divs for anything selected above that does not exist.
                 .append('rect')
                 .on("mouseover", (d) ->
-                    console.log "id:", id, "value:", d.value, "year:", d.year)
+                    console.log "id:", d._id, "value:", d.value, "year:", d.year)
                 .on("click", (d) ->
-                    console.log "clicked remove", id
-                    chartData.remove({_id: id}) )
+                    console.log "clicked remove", d._id
+                    chartData.remove({_id: d._id}) )
 
             bar.attr
                 x: (d, i) -> d.year * 60
                 y: 0
                 width: 50
                 height: (d) -> d.value
-                id: 'id-' + id
+                id: 'id-' + document._id
 
             bar.style
                 fill: '#1FB6ED'
 
-        changed: (id, fields) ->
-            console.log "CHANGED:", id, fields.value
-            item = chartData.findOne({_id: id})
-            data = []
-            data.push(item)
-            console.log "Changed Data Element:", data
-            bar = d3.select('#id-' + id)
+        changed: (document) ->
+            console.log "CHANGED:", document
+            data = [document]
+            bar = d3.select('#id-' + document._id)
                 .data(data)
                 .style
                     fill: "red"
@@ -60,12 +54,10 @@ if Meteor.isClient
             bar.attr
                 height: (d) -> d.value
 
-        removed: (id) ->
-            console.log "REMOVED", id
-            item = chartData.findOne({_id: id})
-            data = []
-            data.push(item)
-            bar = d3.select('#id-' + id)
+        removed: (document) ->
+            console.log "REMOVED:", document
+            data = [document]
+            bar = d3.select('#id-' + document._id)
                 .data(data)
 
             #exit captures anything that is missing - then we called style but likely just remove()
