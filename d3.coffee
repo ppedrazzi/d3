@@ -14,6 +14,28 @@ if Meteor.isClient
         'click #changeItem': ->
             Meteor.call("changeDocument")
 
+    Tracker.autorun () ->
+        data = chartData.find().fetch()
+        svg = d3.select('svg')
+            .selectAll('circle')
+            .data(data)
+        console.log "Selected", svg
+
+        maxYear = d3.max(data, (d) -> d.year)
+        console.log "max is", maxYear
+        xScale = d3.scale.linear()
+            .domain([0, maxYear])
+            .range([0, 500])
+
+        svg.enter()
+            .append('circle')
+                .attr
+                    cx: (d, i) -> xScale(d.year)
+                    cy: 100
+                    r: (d, i) -> d.value
+                    fill: "blue"
+
+
 
 if Meteor.isServer
     Meteor.startup () ->
@@ -35,13 +57,13 @@ if Meteor.isServer
         buildChartData: () ->
             chartData.insert
                 value: 50
-                year: 1976
+                year: 1000
             chartData.insert
                 value: 25
-                year: 2000
+                year: 555
             chartData.insert
                 value: 100
-                year: 2010
+                year: 3000
             chartData.insert
                 value: 150
-                year: 1981
+                year: 5000
