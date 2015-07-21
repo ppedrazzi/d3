@@ -17,24 +17,32 @@ if Meteor.isClient
     Tracker.autorun () ->
         data = chartData.find().fetch()
         svg = d3.select('svg')
-            .selectAll('circle')
+            .selectAll('rect')
             .data(data)
         console.log "Selected", svg
 
         maxYear = d3.max(data, (d) -> d.year)
         console.log "max is", maxYear
         xScale = d3.scale.linear()
-            .domain([0, maxYear])
+            .domain([1950, maxYear])
             .range([0, 500])
 
         svg.enter()
-            .append('circle')
+            .append('rect')
                 .attr
-                    cx: (d, i) -> xScale(d.year)
-                    cy: 100
-                    r: (d, i) -> d.value
+                    x: (d, i) -> xScale(d.year)
+                    y: 0
+                    height: (d, i) -> d.value
+                    width: 50
                     fill: "blue"
+                    id: (d, i) -> d._id
+            .on("mouseover", (d, i) ->
+                console.log d)
+            .on("click", (d, i) ->
+                console.log "clicked:", d._id
+                Meteor.call("removeDocument", d._id) )
 
+        svg.exit().remove()
 
 
 if Meteor.isServer
@@ -50,6 +58,10 @@ if Meteor.isServer
                 value: Random.fraction() * 100
                 year: 1950 + ( Random.fraction() * 100 )
 
+        removeDocument: (id) ->
+            chartData.remove({_id: id})
+            console.log "removed:", id
+
         changeDocument: () ->
             doc = chartData.findOne()
             chartData.update({_id: doc._id}, {$set: {value: Random.fraction() * 100}} )
@@ -57,13 +69,13 @@ if Meteor.isServer
         buildChartData: () ->
             chartData.insert
                 value: 50
-                year: 1000
+                year: 1980
             chartData.insert
                 value: 25
-                year: 555
+                year: 1975
             chartData.insert
                 value: 100
-                year: 3000
+                year: 2010
             chartData.insert
                 value: 150
-                year: 5000
+                year: 2000
