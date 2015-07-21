@@ -42,9 +42,11 @@ if Meteor.isClient
         svg.enter()
             .append('rect')
                 .attr
-                    x: (d, i) -> i * 65
+                    x: (d, i) -> i * 60
                     y: 0
-                    height: (d, i) -> d.value
+                    height: (d, i) ->
+                        console.log d
+                        d.value
                     width: 50
                     fill: "blue"
                     id: (d, i) -> d._id
@@ -72,8 +74,8 @@ if Meteor.isServer
 
         addNewDocument: () ->
             chartData.insert
-                value: Random.fraction() * 100
-                year: 1950 + ( Random.fraction() * 100 )
+                value: Random.fraction() * 1000
+                year: 1950 + ( Random.fraction() * 1000 )
 
         removeDocument: (id) ->
             chartData.remove({_id: id})
