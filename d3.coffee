@@ -9,10 +9,21 @@ if Meteor.isClient
 
     Template.barChart.events
         'click #addItem': ->
-            Meteor.call("addNewDocument")
+            Meteor.call("addNewDocument", (error, result) ->
+                if error
+                    console.error
+                else
+                    console.log "Added:", result)
 
         'click #changeItem': ->
-            Meteor.call("changeDocument")
+            Meteor.call("changeDocument", (error, result) ->
+                if error
+                    console.error
+                else
+                    console.log "Changed:", result)
+        'click rect': (event) ->
+            #using meteor click event gives you event and template, d3 gives access to data.
+            console.log "Meteor event handler:", event.currentTarget
 
     Tracker.autorun () ->
         data = chartData.find().fetch()
@@ -21,10 +32,11 @@ if Meteor.isClient
             .data(data)
         console.log "Selected", svg
 
+        minYear = d3.min(data, (d) -> d.year)
         maxYear = d3.max(data, (d) -> d.year)
-        console.log "max is", maxYear
+        console.log "max:", maxYear, "min:", minYear
         xScale = d3.scale.linear()
-            .domain([1950, maxYear])
+            .domain([minYear, maxYear])
             .range([0, 500])
 
         svg.enter()
@@ -39,8 +51,13 @@ if Meteor.isClient
             .on("mouseover", (d, i) ->
                 console.log d)
             .on("click", (d, i) ->
-                console.log "clicked:", d._id
-                Meteor.call("removeDocument", d._id) )
+                #using meteor click event gives you event and template, d3 gives access to data.
+                console.log "d3 handler, clicked:", d._id
+                Meteor.call("removeDocument", d._id, (error, result) ->
+                    if error
+                        console.log error
+                    else
+                        console.log "Removed:", result) )
 
         svg.exit().remove()
 
@@ -60,7 +77,6 @@ if Meteor.isServer
 
         removeDocument: (id) ->
             chartData.remove({_id: id})
-            console.log "removed:", id
 
         changeDocument: () ->
             doc = chartData.findOne()
