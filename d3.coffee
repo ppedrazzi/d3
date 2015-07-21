@@ -23,14 +23,27 @@ if Meteor.isClient
                     console.log "Changed:", result)
         'click rect': (event) ->
             #using meteor click event gives you event and template, d3 gives access to data.
-            console.log "Meteor event handler:", event.currentTarget
+            console.log "Meteor click event handler:", event.currentTarget
 
     Tracker.autorun () ->
         data = chartData.find().fetch()
+
         svg = d3.select('svg')
             .selectAll('rect')
             .data(data)
-        console.log "Selected", svg
+
+        #update operation
+        svg.attr
+            x: (d, i) -> i * 60
+            y: 0
+            height: (d, i) ->
+                console.log d
+                d.value
+            width: 50
+            fill: "red"
+            id: (d, i) -> d._id
+
+        console.log "d3 Selection:", svg
 
         minYear = d3.min(data, (d) -> d.year)
         maxYear = d3.max(data, (d) -> d.year)
@@ -39,6 +52,7 @@ if Meteor.isClient
             .domain([minYear, maxYear])
             .range([0, 500])
 
+        #enter operation
         svg.enter()
             .append('rect')
                 .attr
@@ -54,13 +68,13 @@ if Meteor.isClient
                 console.log d)
             .on("click", (d, i) ->
                 #using meteor click event gives you event and template, d3 gives access to data.
-                console.log "d3 handler, clicked:", d._id
+                console.log "d3 click event handler:", d._id
                 Meteor.call("removeDocument", d._id, (error, result) ->
                     if error
                         console.log error
                     else
-                        console.log "Removed:", result) )
-
+                        console.log "Removed:", result ))
+        #exit operation
         svg.exit().remove()
 
 
