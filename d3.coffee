@@ -30,7 +30,7 @@ if Meteor.isClient
         svg.enter()
             .append('rect')
                 .attr
-                    x: (d, i) -> xScale(d.year)
+                    x: (d, i) -> i * 65
                     y: 0
                     height: (d, i) -> d.value
                     width: 50
